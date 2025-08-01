@@ -1,0 +1,13 @@
+{
+  "network": "Base Sepolia",
+  "contractName": "LimitOrderProtocol",
+  "address": "0xC8F1403cD1e77eFFF6864bF271a9ED980729524C",
+  "deployer": "0x7A23f6457A23A7A9D8a0dDab0b85d94123E53389",
+  "transactionHash": "0x1209e94d7ee669f6913436f4af323872a3cbc71066d724182518822298f7ffcd",
+  "blockNumber": 29135527,
+  "wethAddress": "0x4200000000000000000000000000000000000006",
+  "timestamp": "2025-08-01T09:09:01.849Z",
+  "constructorArgs": [
+    "0x4200000000000000000000000000000000000006"
+  ]
+}
