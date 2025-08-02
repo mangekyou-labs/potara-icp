@@ -1,0 +1,23 @@
+[package]
+name = "icp_escrow_backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+candid = "0.10"
+ic-cdk = "0.17"
+ic-cdk-timers = "0.11" # Feel free to remove this dependency if you don't need timers
+tiny-keccak = { version = "2.0", features = ["keccak"] }
+serde = { version = "1.0", features = ["derive"] }
+hex = "0.4"
+# ICRC-1 token support
+icrc-ledger-types = "0.1"
+# EVM RPC integration for real cross-chain communication
+serde_json = "1.0"
+# Cross-chain bytes32 handling for EVM compatibility
+b3_utils = "0.8.0"
