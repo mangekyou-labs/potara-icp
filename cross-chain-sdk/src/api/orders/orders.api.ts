@@ -26,7 +26,11 @@ export class OrdersApi {
     async getActiveOrders(
         params: ActiveOrdersRequest = new ActiveOrdersRequest()
     ): Promise<ActiveOrdersResponse> {
-        const queryParams = concatQueryParams(params.build())
+        const builtParams = params.build()
+        const filteredParams = Object.fromEntries(
+            Object.entries(builtParams).filter(([_, value]) => value !== undefined)
+        )
+        const queryParams = concatQueryParams(filteredParams)
         const url = `${this.config.url}/${OrdersApi.Version}/order/active/${queryParams}`
 
         return this.httpClient.get<ActiveOrdersResponse>(url)
@@ -43,7 +47,11 @@ export class OrdersApi {
     async getOrdersByMaker(
         params: OrdersByMakerRequest
     ): Promise<OrdersByMakerResponse> {
-        const qp = concatQueryParams(params.buildQueryParams())
+        const builtParams = params.buildQueryParams()
+        const filteredParams = Object.fromEntries(
+            Object.entries(builtParams).filter(([_, value]) => value !== undefined)
+        )
+        const qp = concatQueryParams(filteredParams)
         const url = `${this.config.url}/${OrdersApi.Version}/order/maker/${params.address}/${qp}`
 
         return this.httpClient.get(url)

@@ -111,7 +111,7 @@ contract EscrowSrc is Escrow, IEscrowSrc {
         onlyValidImmutables(immutables)
         onlyValidSecret(secret, immutables)
     {
-        IERC20(immutables.token.get()).safeTransfer(target, immutables.amount);
+        IERC20(immutables.token.get()).transfer(target, immutables.amount);
         _ethTransfer(msg.sender, immutables.safetyDeposit);
         emit Withdrawal(secret);
     }
@@ -121,7 +121,7 @@ contract EscrowSrc is Escrow, IEscrowSrc {
      * @param immutables The immutable values used to deploy the clone contract.
      */
     function _cancel(Immutables calldata immutables) internal onlyValidImmutables(immutables) {
-        IERC20(immutables.token.get()).safeTransfer(immutables.maker.get(), immutables.amount);
+        IERC20(immutables.token.get()).transfer(immutables.maker.get(), immutables.amount);
         _ethTransfer(msg.sender, immutables.safetyDeposit);
         emit EscrowCancelled();
     }

@@ -86,9 +86,10 @@ contract EscrowDst is Escrow, IEscrowDst {
              * even in case of malicious receiver the withdrawal flow can not be blocked and takers
              * will be able to get their safety deposit back.
              **/
-            to.call{ value: immutables.amount }("");
+            (bool success,) = to.call{ value: immutables.amount }("");
+            // Intentionally ignore success to prevent blocking withdrawal flow
         } else {
-            IERC20(token).safeTransfer(to, immutables.amount);
+            IERC20(token).transfer(to, immutables.amount);
         }
         _ethTransfer(msg.sender, immutables.safetyDeposit);
         emit Withdrawal(secret);

@@ -1053,6 +1053,58 @@ async fn create_escrow_with_hex_secret(
     ).await
 }
 
+/// Create escrow with EVM immutables from 1inch SDK
+/// This method accepts the exact format from 1inch CrossChainOrder.toSrcImmutables()
+#[update]
+async fn create_escrow_with_evm_immutables(
+    order_hash_hex: String,
+    hashlock_hex: String,
+    maker: String,
+    taker: String,
+    amount: u64,
+    withdrawal_time: u32,
+    cancellation_time: u32,
+    icp_recipient: Principal,
+    safety_deposit: u64,
+    evm_escrow_address: String
+) -> Result<String, String> {
+    // Convert hex strings to bytes32
+    let order_hash = hex_to_bytes32(&order_hash_hex)?;
+    let hashlock = hex_to_bytes32(&hashlock_hex)?;
+    let maker_addr = evm_address_to_bytes(&maker)?;
+    let taker_addr = evm_address_to_bytes(&taker)?;
+    
+    // Create timelocks
+    let timelocks = Timelocks::new(
+        0, 0, 0, 0, // Src timelocks (not used for destination)
+        withdrawal_time,
+        cancellation_time,
+        cancellation_time + 1, // DstPublicWithdrawal
+        current_time_seconds() as u32
+    );
+    
+    // Create immutables
+    let immutables = Immutables {
+        order_hash,
+        hashlock,
+        maker: maker_addr,
+        taker: taker_addr,
+        token: [0u8; 32], // ICP native token
+        amount: u64_to_u256(amount),
+        safety_deposit: u64_to_u256(safety_deposit),
+        timelocks,
+    };
+    
+    // Create escrow
+    create_escrow_with_immutables(
+        immutables,
+        icp_recipient,
+        None, // ICP native token
+        1, // Default EVM chain ID (Ethereum)
+        evm_escrow_address
+    ).await
+}
+
 /// Withdraw using hex string secret (EVM compatible)
 #[update]
 async fn withdraw_with_hex_secret(
@@ -1136,6 +1188,8 @@ fn get_cross_chain_info() -> String {
         • hex_string_to_bytes32() - Convert hex to bytes32\n\
         • test_cross_chain_secret_compatibility() - Test secret handling\n\
         • deposit_principal() - Generate deposit address (tutorial pattern)\n\
+        • get_mock_icp_balance() - Get mock ICP balance for testing\n\
+        • mock_icp_transfer() - Mock ICP token transfer for testing\n\
         \n\
         🎯 Ready for real 1inch Fusion+ integration!"
     )
@@ -1148,4 +1202,149 @@ fn deposit_principal(principal: String) -> String {
     let subaccount = Subaccount::from_principal(principal);
     let bytes32 = subaccount.to_bytes32().unwrap();
     vec_to_hex_string_with_0x(bytes32)
+}
+
+// =============================================================================
+// MOCK ICP TOKEN TRANSFER METHODS FOR TESTING
+// =============================================================================
+
+// Mock ICP balance storage for testing
+thread_local! {
+    static MOCK_ICP_BALANCES: RefCell<HashMap<String, u64>> = RefCell::new(HashMap::new());
+}
+
+/// Get mock ICP balance for testing purposes
+#[query]
+fn get_mock_icp_balance(principal: String) -> u64 {
+    MOCK_ICP_BALANCES.with(|balances| {
+        balances.borrow().get(&principal).copied().unwrap_or(100000000) // Default 1 ICP
+    })
+}
+
+/// Mock ICP token transfer for testing purposes
+#[update]
+async fn mock_icp_transfer(from: String, to: String, amount: u64) -> Result<String, String> {
+    MOCK_ICP_BALANCES.with(|balances| {
+        let mut balances_map = balances.borrow_mut();
+        
+        // Get current balances
+        let from_balance = balances_map.get(&from).copied().unwrap_or(100000000);
+        let to_balance = balances_map.get(&to).copied().unwrap_or(100000000);
+        
+        // Check if sender has sufficient balance
+        if from_balance < amount {
+            return Err(format!("Insufficient balance: {} < {}", from_balance, amount));
+        }
+        
+        // Perform transfer
+        balances_map.insert(from.clone(), from_balance - amount);
+        balances_map.insert(to.clone(), to_balance + amount);
+        
+        ic_cdk::print(&format!(
+            "Mock ICP transfer: {} → {} (amount: {})",
+            from, to, amount
+        ));
+        
+        Ok(format!("Transfer successful: {} ICP from {} to {}", amount, from, to))
+    })
+}
+
+/// Set mock ICP balance for testing
+#[update]
+async fn set_mock_icp_balance(principal: String, balance: u64) -> Result<String, String> {
+    MOCK_ICP_BALANCES.with(|balances| {
+        let mut balances_map = balances.borrow_mut();
+        balances_map.insert(principal.clone(), balance);
+        
+        ic_cdk::print(&format!("Set mock ICP balance for {}: {}", principal, balance));
+        
+        Ok(format!("Balance set: {} ICP for {}", balance, principal))
+    })
+}
+
+/// Get all mock ICP balances for testing
+#[query]
+fn get_all_mock_icp_balances() -> Vec<(String, u64)> {
+    MOCK_ICP_BALANCES.with(|balances| {
+        balances.borrow().iter().map(|(k, v)| (k.clone(), *v)).collect()
+    })
+}
+
+/// Reset all mock ICP balances for testing
+#[update]
+async fn reset_mock_icp_balances() -> Result<String, String> {
+    MOCK_ICP_BALANCES.with(|balances| {
+        let mut balances_map = balances.borrow_mut();
+        balances_map.clear();
+        
+        // Set default balances
+        balances_map.insert("2vxsx-fae".to_string(), 100000000); // Anonymous principal: 1 ICP
+        balances_map.insert("rrkah-fqaaa-aaaaa-aaaaq-cai".to_string(), 1000000000); // ICP ledger: 10 ICP
+        
+        ic_cdk::print("Reset all mock ICP balances to defaults");
+        
+        Ok("Mock ICP balances reset successfully".to_string())
+    })
+}
+
+/// Enhanced withdrawal with real token transfer simulation
+#[update]
+async fn withdraw_with_real_token_transfer(
+    escrow_id: String,
+    secret_hex: String
+) -> Result<String, String> {
+    // First, perform the regular withdrawal
+    let secret = hex_to_bytes32(&secret_hex)?;
+    withdraw_with_secret(escrow_id.clone(), secret).await?;
+    
+    // Then simulate real token transfer
+    let escrow = ESCROWS.with(|escrows| {
+        escrows.borrow().get(&escrow_id).cloned()
+    }).ok_or("Escrow not found")?;
+    
+    let amount_u64 = u256_to_u64(escrow.immutables.amount);
+    let recipient = escrow.icp_recipient.to_string();
+    
+    // Perform mock ICP transfer
+    let transfer_result = mock_icp_transfer(
+        "2vxsx-fae".to_string(), // From anonymous principal (escrow)
+        recipient.clone(),
+        amount_u64
+    ).await?;
+    
+    Ok(format!("Withdrawal and token transfer completed: {}", transfer_result))
+}
+
+/// Get comprehensive escrow status with token transfer info
+#[query]
+fn get_escrow_status_with_tokens(escrow_id: String) -> Result<String, String> {
+    let escrow = ESCROWS.with(|escrows| {
+        escrows.borrow().get(&escrow_id).cloned()
+    }).ok_or("Escrow not found")?;
+    
+    let amount_u64 = u256_to_u64(escrow.immutables.amount);
+    let recipient_balance = get_mock_icp_balance(escrow.icp_recipient.to_string());
+    
+    let status = format!(
+        "Escrow Status:\n\
+        • ID: {}\n\
+        • Amount: {} ICP ({} e8s)\n\
+        • Recipient: {}\n\
+        • Recipient Balance: {} e8s\n\
+        • Withdrawn: {}\n\
+        • Cancelled: {}\n\
+        • Deployed At: {}\n\
+        • Order Hash: 0x{}",
+        escrow_id,
+        amount_u64 as f64 / 100000000.0, // Convert e8s to ICP
+        amount_u64,
+        escrow.icp_recipient,
+        recipient_balance,
+        escrow.withdrawn,
+        escrow.cancelled,
+        escrow.deployed_at,
+        hex::encode(&escrow.immutables.order_hash)
+    );
+    
+    Ok(status)
 }

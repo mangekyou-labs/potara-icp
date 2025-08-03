@@ -1,9 +1,9 @@
-import {Interface, Signature, TransactionRequest} from 'ethers'
+import {ethers} from 'ethers'
 import Sdk from '@1inch/cross-chain-sdk'
 import Contract from '../dist/contracts/Resolver.sol/Resolver.json'
 
 export class Resolver {
-    private readonly iface = new Interface(Contract.abi)
+    private readonly iface = new ethers.utils.Interface(Contract.abi)
 
     constructor(
         public readonly srcAddress: string,
@@ -17,8 +17,8 @@ export class Resolver {
         takerTraits: Sdk.TakerTraits,
         amount: bigint,
         hashLock = order.escrowExtension.hashLockInfo
-    ): TransactionRequest {
-        const {r, yParityAndS: vs} = Signature.from(signature)
+    ): ethers.providers.TransactionRequest {
+        const {r, yParityAndS: vs} = ethers.utils.splitSignature(signature)
         const {args, trait} = takerTraits.encode()
         const immutables = order.toSrcImmutables(chainId, new Sdk.Address(this.srcAddress), amount, hashLock)
 
@@ -42,7 +42,7 @@ export class Resolver {
          * Immutables from SrcEscrowCreated event with complement applied
          */
         immutables: Sdk.Immutables
-    ): TransactionRequest {
+    ): ethers.providers.TransactionRequest {
         return {
             to: this.dstAddress,
             data: this.iface.encodeFunctionData('deployDst', [
@@ -58,14 +58,14 @@ export class Resolver {
         escrow: Sdk.Address,
         secret: string,
         immutables: Sdk.Immutables
-    ): TransactionRequest {
+    ): ethers.providers.TransactionRequest {
         return {
             to: side === 'src' ? this.srcAddress : this.dstAddress,
             data: this.iface.encodeFunctionData('withdraw', [escrow.toString(), secret, immutables.build()])
         }
     }
 
-    public cancel(side: 'src' | 'dst', escrow: Sdk.Address, immutables: Sdk.Immutables): TransactionRequest {
+    public cancel(side: 'src' | 'dst', escrow: Sdk.Address, immutables: Sdk.Immutables): ethers.providers.TransactionRequest {
         return {
             to: side === 'src' ? this.srcAddress : this.dstAddress,
             data: this.iface.encodeFunctionData('cancel', [escrow.toString(), immutables.build()])

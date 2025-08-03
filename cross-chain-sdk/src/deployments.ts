@@ -1,5 +1,4 @@
 import {Address, NetworkEnum} from '@1inch/fusion-sdk'
-import {ICP_CHAIN_IDS} from './icp/types'
 
 const TrueERC20 = new Address('0xda0000d4000015a526378bb6fafc650cea5966f8')
 const ZKTrueERC20 = new Address('0xd66097c27eb8dee404bac235737932260edc6f3b')
@@ -17,10 +16,7 @@ export const TRUE_ERC20 = {
     [NetworkEnum.ZKSYNC]: ZKTrueERC20,
     [NetworkEnum.LINEA]: TrueERC20,
     [NetworkEnum.SONIC]: TrueERC20,
-    [NetworkEnum.UNICHAIN]: TrueERC20,
-    // ICP doesn't use ERC20 tokens, so we'll use a placeholder
-    [ICP_CHAIN_IDS.MAINNET]: TrueERC20,
-    [ICP_CHAIN_IDS.TESTNET]: TrueERC20
+    [NetworkEnum.UNICHAIN]: TrueERC20
 }
 
 const ESCROW_FACTORY_ADDRESS = new Address(

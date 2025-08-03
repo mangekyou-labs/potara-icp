@@ -1,5 +1,5 @@
 import {Address} from '@1inch/fusion-sdk'
-import {ICPAddress, ICPPrincipal, ICPCanister, ICPAddressValidation} from './types'
+import {ICPAddressType, ICPPrincipal, ICPCanister, ICPAddressValidation} from './types'
 
 /**
  * ICP Address utilities for handling principals and canisters
@@ -71,7 +71,7 @@ export class ICPAddressUtils {
     /**
      * Convert ICP address to bytes (for cross-chain compatibility)
      */
-    public static addressToBytes(address: ICPAddress): Uint8Array {
+    public static addressToBytes(address: string): Uint8Array {
         const validation = this.validateAddress(address)
         if (!validation.isValid) {
             throw new Error(`Invalid ICP address: ${validation.error}`)
@@ -84,7 +84,7 @@ export class ICPAddressUtils {
     /**
      * Convert bytes to ICP address
      */
-    public static bytesToAddress(bytes: Uint8Array): ICPAddress {
+    public static bytesToAddress(bytes: Uint8Array): string {
         return this.bytesToBase32(bytes)
     }
 

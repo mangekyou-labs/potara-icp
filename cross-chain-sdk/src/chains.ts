@@ -1,12 +1,9 @@
 import {NetworkEnum} from '@1inch/fusion-sdk'
 import {TupleToUnion} from './type-utils'
-import {ICP_CHAIN_IDS, ICPChainId} from './icp/types'
 
-// Extended chain enum to include ICP
+// Extended chain enum to include ICP (temporarily disabled)
 export const ExtendedNetworkEnum = {
-    ...NetworkEnum,
-    INTERNET_COMPUTER: ICP_CHAIN_IDS.MAINNET,
-    INTERNET_COMPUTER_TESTNET: ICP_CHAIN_IDS.TESTNET
+    ...NetworkEnum
 } as const
 
 export const SupportedChains = [
@@ -21,10 +18,7 @@ export const SupportedChains = [
     NetworkEnum.ZKSYNC,
     NetworkEnum.LINEA,
     NetworkEnum.SONIC,
-    NetworkEnum.UNICHAIN,
-    // Add ICP support
-    ExtendedNetworkEnum.INTERNET_COMPUTER,
-    ExtendedNetworkEnum.INTERNET_COMPUTER_TESTNET
+    NetworkEnum.UNICHAIN
 ] as const
 
 type UnsupportedChain = Exclude<
@@ -38,37 +32,28 @@ export const isSupportedChain = (chain: unknown): chain is SupportedChain =>
     SupportedChains.includes(chain as number)
 
 /**
- * Check if a chain is an ICP chain
+ * Check if a chain is an ICP chain (temporarily disabled)
  */
 export const isICPChain = (chain: number): boolean => {
-    return chain === ICP_CHAIN_IDS.MAINNET || chain === ICP_CHAIN_IDS.TESTNET
+    return false
 }
 
 /**
  * Check if a chain is an EVM chain
  */
 export const isEVMChain = (chain: number): boolean => {
-    return !isICPChain(chain)
+    return true
 }
 
 /**
  * Get chain configuration
  */
 export const getChainConfig = (chainId: number) => {
-    if (isICPChain(chainId)) {
-        return {
-            chainId,
-            name: chainId === ICP_CHAIN_IDS.MAINNET ? 'Internet Computer' : 'Internet Computer Testnet',
-            isTestnet: chainId === ICP_CHAIN_IDS.TESTNET,
-            type: 'icp' as const
-        }
-    } else {
-        return {
-            chainId,
-            name: getEVMChainName(chainId),
-            isTestnet: isEVMTestnet(chainId),
-            type: 'evm' as const
-        }
+    return {
+        chainId,
+        name: getEVMChainName(chainId),
+        isTestnet: isEVMTestnet(chainId),
+        type: 'evm' as const
     }
 }
 

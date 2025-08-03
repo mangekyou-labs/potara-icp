@@ -1,8 +1,8 @@
-import {AbiCoder, Contract, JsonRpcProvider, Signer, TransactionRequest, Wallet as PKWallet} from 'ethers'
+import {Contract, JsonRpcProvider, Signer, TransactionRequest, Wallet as PKWallet, AbiCoder} from 'ethers'
 import Sdk from '@1inch/cross-chain-sdk'
 import ERC20 from '../dist/contracts/IERC20.sol/IERC20.json'
 
-const coder = AbiCoder.defaultAbiCoder()
+const coder = new AbiCoder()
 
 export class Wallet {
     public provider: JsonRpcProvider

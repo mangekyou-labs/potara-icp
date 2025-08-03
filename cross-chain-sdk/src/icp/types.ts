@@ -23,8 +23,9 @@ export type ICPCanister = string
 
 /**
  * ICP Address can be either a Principal or Canister ID
+ * Note: This is now handled by the ICPAddress class
  */
-export type ICPAddress = ICPPrincipal | ICPCanister
+export type ICPAddressType = ICPPrincipal | ICPCanister
 
 /**
  * ICP-specific chain configuration

@@ -1,5 +1,6 @@
 import {z} from 'zod'
 import Sdk from '@1inch/cross-chain-sdk'
+import {ExtendedNetworkEnum} from '../cross-chain-sdk/src/chains'
 import * as process from 'node:process'
 
 const bool = z
@@ -33,16 +34,19 @@ export const config = {
             }
         },
         destination: {
-            chainId: Sdk.NetworkEnum.BINANCE,
-            url: fromEnv.DST_CHAIN_RPC,
-            createFork: fromEnv.DST_CHAIN_CREATE_FORK,
-            limitOrderProtocol: '0x111111125421ca6dc452d289314280a0f8842a65',
-            wrappedNative: '0xbb4cdb9cbd36b01bd1cbaebf2de08d9173bc095c',
+            // Use ICP testnet as destination instead of BSC
+            chainId: ExtendedNetworkEnum.INTERNET_COMPUTER_TESTNET,
+            url: 'http://127.0.0.1:4943', // ICP local replica
+            createFork: false, // ICP doesn't use forks
+            // ICP-specific configuration
+            canisterId: 'uxrrr-q7777-77774-qaaaq-cai', // Your deployed ICP escrow canister
             ownerPrivateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
+            // ICP token configuration (using ICP native tokens)
             tokens: {
-                USDC: {
-                    address: '0x8965349fb649a33a30cbfda057d8ec2c48abe2a2',
-                    donor: '0x4188663a85C92EEa35b5AD3AA5cA7CeB237C6fe9'
+                ICP: {
+                    address: 'ryjl3-tyaaa-aaaaa-aaaba-cai', // ICP ledger canister
+                    donor: '2vxsx-fae', // Anonymous principal
+                    decimals: 8
                 }
             }
         }

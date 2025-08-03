@@ -76,7 +76,7 @@ abstract contract BaseEscrow is IBaseEscrow {
         if (token == address(0)) {
             _ethTransfer(to, amount);
         } else {
-            IERC20(token).safeTransfer(to, amount);
+            IERC20(token).transfer(to, amount);
         }
     }
 

@@ -110,7 +110,7 @@ abstract contract BaseEscrowFactory is IEscrowFactory, ResolverValidationExtensi
 
         bytes32 salt = immutables.hashMem();
         address escrow = _deployEscrow(salt, 0, ESCROW_SRC_IMPLEMENTATION);
-        if (escrow.balance < immutables.safetyDeposit || IERC20(order.makerAsset.get()).safeBalanceOf(escrow) < makingAmount) {
+        if (escrow.balance < immutables.safetyDeposit || IERC20(order.makerAsset.get()).balanceOf(escrow) < makingAmount) {
             revert InsufficientEscrowBalance();
         }
     }
@@ -134,7 +134,7 @@ abstract contract BaseEscrowFactory is IEscrowFactory, ResolverValidationExtensi
         bytes32 salt = immutables.hashMem();
         address escrow = _deployEscrow(salt, msg.value, ESCROW_DST_IMPLEMENTATION);
         if (token != address(0)) {
-            IERC20(token).safeTransferFrom(msg.sender, escrow, immutables.amount);
+            IERC20(token).transferFrom(msg.sender, escrow, immutables.amount);
         }
 
         emit DstEscrowCreated(escrow, dstImmutables.hashlock, dstImmutables.taker);

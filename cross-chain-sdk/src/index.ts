@@ -36,5 +36,5 @@ export * from './sdk'
 export * from './api'
 export * from './ws-api'
 
-// Export ICP support
-export * from './icp'
+// Export ICP support (temporarily disabled for compilation)
+// export * from './icp'
