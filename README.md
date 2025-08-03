@@ -35,6 +35,14 @@ SRC_CHAIN_RPC=ETH_FORK_URL DST_CHAIN_RPC=BNB_FORK_URL pnpm test
 | Ethereum | https://eth.merkle.io        |
 | BSC      | wss://bsc-rpc.publicnode.com |
 
+## Test Files
+
+### Main Integration Test
+The primary integration test file is `tests/real-1inch-icp-integration.spec.ts` which contains the complete 1inch Fusion+ ICP integration with real token transfers.
+
+### Reference Test
+The original reference implementation is in `tests/main.spec.ts` for comparison and reference.
+
 ## Test accounts
 
 ### Available Accounts
